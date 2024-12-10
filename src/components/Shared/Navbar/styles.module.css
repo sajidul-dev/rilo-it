@@ -1,0 +1,15 @@
+.container {
+  @apply w-full flex items-center justify-between bg-gray-400 h-16 p-4;
+}
+
+.buttons {
+  @apply flex gap-6;
+}
+
+.loginButton {
+  @apply bg-red-500 text-black font-semibold;
+}
+
+.registerButton {
+  @apply bg-white text-black font-semibold;
+}
