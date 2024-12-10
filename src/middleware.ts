@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
 
   if (!session) {
     // Redirect to login if no valid session
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   // Continue to the requested page if authenticated

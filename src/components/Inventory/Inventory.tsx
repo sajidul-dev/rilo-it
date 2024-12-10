@@ -35,10 +35,25 @@ import {
 } from "@/components/ui/table";
 import { Label } from "../ui/label";
 import { Payment } from "@/app/dashboard/products/inventory/page";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Spinner } from "../Shared/Spinner/Spinner";
+import {
+  deleteProduct,
+  getProducts,
+} from "@/features/products/actions/product.controller";
 
-export const columns: ColumnDef<Payment>[] = [
+const deleteProductHandler = (id: string) => {
+  deleteProduct(id)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {});
+};
+
+export const columns: ColumnDef<any>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -78,7 +93,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: "SKU",
     header: ({ column }) => {
       return (
         <Button
@@ -86,33 +101,57 @@ export const columns: ColumnDef<Payment>[] = [
           className="p-0"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          SKU
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue("SKU")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-
-      return <div className="text-right font-medium">{formatted}</div>;
+    accessorKey: "type",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Type
+          <ArrowUpDown />
+        </Button>
+      );
     },
+    cell: ({ row }) => (
+      <div className="text-left font-medium">{row.getValue("type")}</div>
+    ),
+  },
+  {
+    accessorKey: "availableQuantity",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Available Quantity
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="text-left font-medium">
+        {row.getValue("availableQuantity")}
+      </div>
+    ),
   },
   {
     id: "actions",
+    header: () => <div className="text-left">Actions</div>,
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original;
-
+      const product = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -123,9 +162,7 @@ export const columns: ColumnDef<Payment>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
+            <DropdownMenuItem onClick={() => deleteProductHandler(product._id)}>
               Delete
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -137,11 +174,12 @@ export const columns: ColumnDef<Payment>[] = [
   },
 ];
 
-export function InventoryTable({ data }: { data: Payment[] }) {
+export function InventoryTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState<Payment[]>([]);
 
   const table = useReactTable({
     data,
@@ -162,9 +200,16 @@ export function InventoryTable({ data }: { data: Payment[] }) {
       rowSelection,
     },
   });
+  useEffect(() => {
+    getProducts()
+      .then((result) => {
+        setData(JSON.parse(result.products));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
-  console.log(table.getRowModel().rows);
-  console.log(rowSelection, "Row");
   Object.keys(rowSelection).forEach((key) => {
     console.log(data[parseInt(key)], "Selected");
   });
@@ -191,17 +236,17 @@ export function InventoryTable({ data }: { data: Payment[] }) {
               />
             </div>
             <div className="w-full">
-              <Label htmlFor="email" className="font-bold">
-                Email Filter
+              <Label htmlFor="sku" className="font-bold">
+                SKU Filter
               </Label>
               <Input
-                name="email"
-                placeholder="Filter email..."
+                name="sku"
+                placeholder="Filter sku..."
                 value={
-                  (table.getColumn("email")?.getFilterValue() as string) ?? ""
+                  (table.getColumn("SKU")?.getFilterValue() as string) ?? ""
                 }
                 onChange={(event) =>
-                  table.getColumn("email")?.setFilterValue(event.target.value)
+                  table.getColumn("SKU")?.setFilterValue(event.target.value)
                 }
                 className=""
               />

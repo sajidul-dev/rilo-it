@@ -1,8 +1,8 @@
 import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import connectDb from "@/lib/db";
-import User from "@/models/User";
 import { NextAuthOptions } from "next-auth";
+import User from "@/features/users/schemas/user";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,7 +16,6 @@ export const authOptions: NextAuthOptions = {
           password: string;
         };
 
-        console.log(email, password, "Auth");
         try {
           await connectDb();
           const user = await User.findOne({ email });
@@ -24,12 +23,6 @@ export const authOptions: NextAuthOptions = {
           if (!user) {
             return null;
           }
-          // console.log(password, user.password);
-          // const passwordsMatch = await bcrypt.compare(password, user.password);
-          // console.log(passwordsMatch, "passwordsMatch");
-          // if (!passwordsMatch) {
-          //   return null;
-          // }
 
           return user;
         } catch (error) {
@@ -49,7 +42,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token._id = user._id;
-        // token.name = user.name;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.profilePic = user.profilePic;
         token.email = user.email;
       }
       return token;
@@ -57,7 +52,10 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user._id = token._id;
-        // session.user.name = token.name;
+        session.user.name = token.name;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+        session.user.profilePic = token.profilePic;
         session.user.email = token.email;
       }
       return session;

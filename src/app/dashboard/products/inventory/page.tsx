@@ -127,7 +127,7 @@ const inventoryPage = () => {
           Delete
         </Button>
       </div>
-      <InventoryTable data={data} />
+      <InventoryTable />
     </div>
   );
 };

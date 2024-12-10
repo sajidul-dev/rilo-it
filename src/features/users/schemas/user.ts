@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  profilePic: {
+    type: String,
+    required: false,
+  },
 });
 
 const User = mongoose.models?.User || mongoose.model("User", userSchema);

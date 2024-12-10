@@ -11,8 +11,6 @@ const Navbar = () => {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  console.log(session?.user, "Navbar");
-
   return (
     <nav
       className={`${styles.container} ${
@@ -25,12 +23,12 @@ const Navbar = () => {
         {!session?.user.email && (
           <>
             {(pathname === "/register" || "/") && (
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button variant="destructive">Login</Button>
               </Link>
             )}
             {(pathname === "/login" || "/") && (
-              <Link href="/register">
+              <Link href="/auth/register">
                 <Button variant="outline">Register</Button>
               </Link>
             )}

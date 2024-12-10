@@ -71,7 +71,7 @@ const Login = () => {
           {(errors && errors.email?.message) || errors.password?.message}
           <p>
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-bold">
+            <Link href="/auth/register" className="font-bold">
               Register
             </Link>
           </p>

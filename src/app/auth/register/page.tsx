@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createUser } from "@/features/users/actions/user.controller";
+import axios from "axios";
+
+const imgbbAPI = "f0ddb5ae9e19f834e7f7afe720c07d16";
 
 const schema = yup
   .object({
@@ -35,6 +37,7 @@ const schema = yup
     password: yup.string().required({
       message: "Password is required",
     }),
+    profilePic: yup.mixed().optional(),
   })
   .required();
 
@@ -48,20 +51,42 @@ const Register = () => {
   });
   const router = useRouter();
   const onSubmit = async (data: any) => {
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    const res = await response.json();
-
-    if (response.ok) {
-      router.push("/dashboard");
-
-      toast.success("User registered successfully");
+    console.log(data);
+    if (data.profilePic[0]) {
+      const formData = new FormData();
+      formData.append("image", data.profilePic[0]);
+      axios
+        .post(`https://api.imgbb.com/1/upload?key=${imgbbAPI}`, formData)
+        .then((res) => {
+          if (res.data) {
+            console.log(res.data.data.display_url);
+            createUser({ ...data, profilePic: res.data.data.display_url })
+              .then((res) => {
+                toast.success("Signup successful. Please login");
+                router.push("/auth/login");
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          }
+        });
     } else {
-      toast.error(res || "Error occurred");
+      createUser({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        companyName: data.companyName,
+        phone: data.phone,
+        password: data.password,
+        email: data.email,
+        profilePic: "",
+      })
+        .then((res) => {
+          toast.success("Signup successful. Please login");
+          router.push("/auth/login");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   };
   return (
@@ -89,10 +114,6 @@ const Register = () => {
             {...register("companyName")}
             className="my-3"
           ></Input>
-          {/* <Label htmlFor="text" className="my-3">
-            Last Name
-          </Label>
-          <Input type="text" {...register("phone")} className="my-3"></Input> */}
           <Label htmlFor="number" className="my-3">
             Contact Number
           </Label>
@@ -105,10 +126,12 @@ const Register = () => {
             Password
           </Label>
           <Input type="password" {...register("password")}></Input>
+          <Label htmlFor="picture">Picture</Label>
+          <Input {...register("profilePic")} id="picture" type="file" />
           <Button className="bg-gray-600 w-full my-4">Register</Button>
         </form>
         <p>
-          Already Registered? <Link href="/login">Login</Link>
+          Already Registered? <Link href="/auth/login">Login</Link>
         </p>
       </div>
     </div>
